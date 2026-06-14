@@ -1,4 +1,5 @@
-<div align="center">MADE WITH ❤️ BY DXN1</div>
+<div align="center"><h1>MADE WITH ❤️ BY DXN1</h1></div>
+
 
 <!-- ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ -->
 <div align="center">
