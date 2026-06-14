@@ -38,11 +38,13 @@ your phone as they do on your laptop.**
   <img alt="prs" src="https://img.shields.io/badge/PRs-welcome-00d9ff?style=flat-square">
 </p>
 
-<sub>
+<div align="center">
 
-[**Install**](#-install) · [**Why**](#-why-clixr-exists) · [**Arsenal**](#-the-arsenal) · [**Usage**](#-usage) · [**Recipes**](#-recipes) · [**Themes**](#-themes) · [**Plugins**](#-write-your-own) · [**Architecture**](#-architecture) · [**FAQ**](#-faq) · [**Contributing**](#-contributing)
+[Architecture](#) &nbsp;•&nbsp; [Why](#) &nbsp;•&nbsp; [FAQ](#) &nbsp;•&nbsp; [Contributing](#) &nbsp;•&nbsp; [Recipes](#) &nbsp;•&nbsp; [Themes](#) &nbsp;•&nbsp; [Plugins](#)
 
-</sub>
+</div>
+
+
 
 </div>
 
