@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Public IP + geolocation lookup
+
+
+ip="${1:-}"
+if [ -z "$ip" ]; then ip=$(get_public_ip); ui_info "Your public IP: $ip"; fi
+require_cmd curl || exit 1
+ui_header "ip info: $ip"
+curl -fsSL "https://ipinfo.io/$ip/json" 2>/dev/null | sed "s/[{}\",]//g;s/^ *//" | grep -E ":" | sed "s/^/  /"

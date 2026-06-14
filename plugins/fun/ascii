@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Convert text to ASCII art banner
+
+
+text="${*:-clixr}"
+if has_cmd figlet; then figlet "$text"
+elif has_cmd toilet; then toilet "$text"
+else gradient "### $text ###" 51 201; ui_info "(install figlet for full ASCII art)"; fi

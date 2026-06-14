@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Subdomain enumeration via wordlist
+
+
+domain="${1:?usage: clixr subdomain <domain> [wordlist]}"
+words="${2:-}"
+list="www mail ftp api dev staging test admin portal vpn ns1 ns2 blog shop app cdn m"
+[ -n "$words" ] && [ -f "$words" ] && list="$(cat "$words")"
+ui_header "subdomains: $domain"
+found=0
+for sub in $list; do
+  ip=$(resolve_host "$sub.$domain")
+  [ -n "$ip" ] && { ui_ok "$sub.$domain → $ip"; found=$((found+1)); }
+done
+printf "\n"; ui_info "$found subdomain(s) found"

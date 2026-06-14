@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: AES-256 encrypt/decrypt a file
+
+
+require_cmd openssl || exit 1
+mode="${1:?usage: clixr encrypt enc|dec <in> <out>}"; in="${2:?}"; out="${3:?}"
+case "$mode" in
+  enc) aes_encrypt "$in" "$out" && ui_ok "encrypted → $out" ;;
+  dec) aes_decrypt "$in" "$out" && ui_ok "decrypted → $out" ;;
+  *) ui_err "mode must be enc or dec" ;;
+esac

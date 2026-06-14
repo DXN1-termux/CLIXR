@@ -1,0 +1,3 @@
+# clixr theme: gruvbox
+export CLIXR_THEME="gruvbox"
+export PS1='\[\033[38;5;214m\]\u \[\033[38;5;142m\]\w \[\033[38;5;208m\]λ\[\033[0m\] '

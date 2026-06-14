@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Terminal weather report
+
+
+require_cmd curl || exit 1
+loc="${1:-}"
+curl -fsSL "https://wttr.in/${loc}?format=3" 2>/dev/null || ui_err "weather unavailable"

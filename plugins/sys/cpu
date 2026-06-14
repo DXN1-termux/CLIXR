@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: CPU and memory snapshot
+
+
+ui_header "cpu / memory"
+if has_cmd nproc; then ui_info "Cores: $(nproc)"; fi
+[ -f /proc/loadavg ] && ui_info "Load: $(cut -d" " -f1-3 /proc/loadavg)"
+if has_cmd free; then free -h 2>/dev/null | awk "NR<=2{print \"  \"\$0}"; fi

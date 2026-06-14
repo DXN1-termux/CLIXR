@@ -1,0 +1,3 @@
+# clixr theme: catppuccin
+export CLIXR_THEME="catppuccin"
+export PS1='\[\033[38;5;218m\]\u \[\033[38;5;183m\]\w \[\033[38;5;158m\]✦\[\033[0m\] '

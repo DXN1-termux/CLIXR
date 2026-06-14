@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Show environment variables prettily
+
+
+ui_header "environment"
+env | sort | awk -F= "{printf \"  \033[96m%-24s\033[0m %s\n\", \$1, substr(\$0, index(\$0,\"=\")+1)}" | grep -iE "${1:-.}"

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Pipes screensaver
+
+
+cols=$(tput cols 2>/dev/null||echo 80); rows=$(tput lines 2>/dev/null||echo 24)
+trap "tput cnorm 2>/dev/null; clear; exit 0" INT
+tput civis 2>/dev/null; clear
+x=$((cols/2)); y=$((rows/2)); dx=1; dy=0
+ch="│─└┐┌┘"
+for ((i=0;i<${1:-400};i++)); do
+  printf "\033[%d;%dH%s█%s" "$y" "$x" "$(fg256 $((RANDOM%230+16)))" "$RESET"
+  case $((RANDOM%8)) in 0) dx=1;dy=0;; 1) dx=-1;dy=0;; 2) dx=0;dy=1;; 3) dx=0;dy=-1;; esac
+  x=$((x+dx)); y=$((y+dy))
+  [ $x -lt 1 ] && x=$cols; [ $x -gt $cols ] && x=1
+  [ $y -lt 1 ] && y=$rows; [ $y -gt $rows ] && y=1
+  sleep 0.03
+done
+tput cnorm 2>/dev/null; clear

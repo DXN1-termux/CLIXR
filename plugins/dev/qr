@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Generate a QR code in the terminal
+
+
+data="${*:?usage: clixr qr <text|url>}"
+if has_cmd qrencode; then qrencode -t ANSIUTF8 "$data"
+else
+  require_cmd curl || exit 1
+  curl -fsSL "https://api.qrserver.com/v1/create-qr-code/?data=$(printf %s "$data" | sed "s/ /%20/g")&size=200x200" -o /tmp/clixr_qr.png 2>/dev/null \
+    && ui_ok "QR saved to /tmp/clixr_qr.png" || ui_err "failed"
+fi

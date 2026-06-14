@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+# clixr — the ultimate cross-platform CLI toolkit
+# Main dispatcher: discovers and runs plugins from plugins/<category>/<name>
+set -uo pipefail
+
+CLIXR_VERSION="0.2.0"
+
+# Resolve install root (handles symlinks)
+_src="${BASH_SOURCE[0]}"
+while [ -h "$_src" ]; do
+  _dir="$(cd -P "$(dirname "$_src")" && pwd)"
+  _src="$(readlink "$_src")"; [[ "$_src" != /* ]] && _src="$_dir/$_src"
+done
+CLIXR_ROOT="$(cd -P "$(dirname "$_src")/.." && pwd)"
+export CLIXR_ROOT CLIXR_LIB="$CLIXR_ROOT/lib" CLIXR_PLUGINS="$CLIXR_ROOT/plugins" CLIXR_THEMES="$CLIXR_ROOT/themes"
+
+for _l in colors ui platform utils network crypto; do
+  # shellcheck source=/dev/null
+  . "$CLIXR_LIB/$_l.sh"
+done
+
+CATEGORIES=(net sec sys dev web rice fun)
+declare -A CAT_LABEL=(
+  [net]="networking & recon" [sec]="security & crypto" [sys]="system management"
+  [dev]="developer tools" [web]="web & downloads" [rice]="customization" [fun]="easter eggs"
+)
+declare -A CAT_ICON=([net]="🌐" [sec]="🔐" [sys]="🖥" [dev]="🛠" [web]="🕸" [rice]="🎨" [fun]="🎉")
+
+LOGO_LINES=(
+'   ██████╗██╗     ██╗██╗  ██╗██████╗ '
+'  ██╔════╝██║     ██║╚██╗██╔╝██╔══██╗'
+'  ██║     ██║     ██║ ╚███╔╝ ██████╔╝'
+'  ██║     ██║     ██║ ██╔██╗ ██╔══██╗'
+'  ╚██████╗███████╗██║██╔╝ ██╗██║  ██║'
+'   ╚═════╝╚══════╝╚═╝╚═╝  ╚═╝╚═╝  ╚═╝'
+)
+
+print_logo() {
+  if [ "${1:-}" = "--animate" ] && [ -t 1 ]; then
+    ui_reveal "$BCYAN" "${LOGO_LINES[@]}"
+  else
+    local l; for l in "${LOGO_LINES[@]}"; do printf '%s%s%s\n' "$BCYAN" "$l" "$RESET"; done
+  fi
+  mgradient "       ⚡ the ultimate CLI toolkit ⚡ ⚡" 51 45 39 99 201
+  printf '   %sv%s%s · %s%s tools%s · %s%s\n' "$DIM" "$CLIXR_VERSION" "$RESET" "$BGREEN" "$(count_plugins)" "$RESET" "$DIM$(detect_os)$RESET" ""
+}
+
+find_plugin() {
+  local name="$1" cat
+  for cat in "${CATEGORIES[@]}"; do
+    [ -f "$CLIXR_PLUGINS/$cat/$name" ] && { echo "$CLIXR_PLUGINS/$cat/$name"; return 0; }
+  done
+  return 1
+}
+
+plugin_desc() { grep -m1 '^# desc:' "$1" 2>/dev/null | cut -d: -f2- | sed 's/^ *//'; }
+
+count_plugins() {
+  local n=0 cat f
+  for cat in "${CATEGORIES[@]}"; do
+    [ -d "$CLIXR_PLUGINS/$cat" ] || continue
+    for f in "$CLIXR_PLUGINS/$cat"/*; do [ -f "$f" ] && n=$(( n + 1 )); done
+  done
+  echo "$n"
+}
+
+list_category() {
+  local cat="$1" f n
+  [ -d "$CLIXR_PLUGINS/$cat" ] || return
+  local files=("$CLIXR_PLUGINS/$cat"/*); [ -e "${files[0]}" ] || return
+  n=$(printf '%s\n' "${files[@]}" | grep -c .)
+  printf '\n %s %s%s%s %s%s%s %s(%s)%s\n' "${CAT_ICON[$cat]:-•}" \
+    "$BOLD$BWHITE" "$cat" "$RESET" "$DIM" "${CAT_LABEL[$cat]:-}" "$RESET" "$GRAY" "$n" "$RESET"
+  ui_rule
+  for f in "${files[@]}"; do
+    [ -f "$f" ] || continue
+    printf '   %s%-14s%s %s%s%s\n' "$BGREEN" "$(basename "$f")" "$RESET" "$DIM" "$(plugin_desc "$f")" "$RESET"
+  done
+}
+
+list_plugins() {
+  print_logo
+  if [ -n "${1:-}" ]; then list_category "$1"; printf '\n'; return; fi
+  local cat; for cat in "${CATEGORIES[@]}"; do list_category "$cat"; done
+  printf '\n %srun %sclixr <tool>%s or %sclixr help%s for usage%s\n\n' "$DIM" "$BCYAN$RESET$DIM" "$DIM" "$BCYAN$RESET$DIM" "$DIM" "$RESET"
+}
+
+show_help() {
+  print_logo
+  printf '\n'
+  ui_panel 51 "USAGE" \
+    "${BGREEN}clixr${RESET} ${BCYAN}<tool>${RESET} [args]      run any of $(count_plugins) tools" \
+    "${BGREEN}clixr${RESET} ${BCYAN}<category>${RESET}         browse a category (net, sec, sys…)"
+  printf '\n'
+  ui_panel 201 "CORE" \
+    "${BGREEN}list${RESET}      all tools by category" \
+    "${BGREEN}help${RESET}      this screen" \
+    "${BGREEN}doctor${RESET}    check deps & environment" \
+    "${BGREEN}update${RESET}    self-update from git" \
+    "${BGREEN}version${RESET}   show version" \
+    "${BGREEN}config${RESET}    config set|get <key> [value]"
+  printf '\n'
+  ui_panel 220 "EXAMPLES" \
+    "${DIM}clixr sysinfo${RESET}" \
+    "${DIM}clixr portscan localhost 1-1000${RESET}" \
+    "${DIM}clixr passgen 32${RESET}" \
+    "${DIM}clixr theme cyberpunk${RESET}"
+  printf '\n'
+}
+
+# Fuzzy suggestion: nearest plugin names by shared-character heuristic
+suggest() {
+  local q="$1" cat f best="" name
+  for cat in "${CATEGORIES[@]}"; do
+    for f in "$CLIXR_PLUGINS/$cat"/*; do
+      [ -f "$f" ] || continue; name="$(basename "$f")"
+      case "$name" in *"$q"*|"$q"*) best+="$name "; ;; esac
+    done
+  done
+  [ -z "$best" ] && for cat in "${CATEGORIES[@]}"; do
+    for f in "$CLIXR_PLUGINS/$cat"/*; do [ -f "$f" ] || continue; name="$(basename "$f")"
+      case "$q" in "${name:0:2}"*) best+="$name ";; esac
+    done
+  done
+  echo "$best"
+}
+
+cmd_doctor() {
+  print_logo; printf '\n'
+  ui_panel 51 "environment" \
+    "OS        ${BWHITE}$(detect_os)${RESET}" \
+    "Arch      ${BWHITE}$(detect_arch)${RESET}" \
+    "Shell     ${BWHITE}$(detect_shell)${RESET}" \
+    "Terminal  ${BWHITE}$(detect_term)${RESET}"
+  printf '\n'; ui_rule "dependencies"
+  local deps=(curl bash awk sed grep nc openssl dig jq)
+  local d
+  for d in "${deps[@]}"; do
+    if has_cmd "$d"; then ui_ok "$d"; else ui_warn "$d ${DIM}(optional)${RESET}"; fi
+  done
+  printf '\n'
+}
+
+main() {
+  local cmd="${1:-help}"; shift || true
+  case "$cmd" in
+    help|--help|-h)       show_help ;;
+    version|--version|-v) printf '%sclixr%s %sv%s%s\n' "$BCYAN" "$RESET" "$DIM" "$CLIXR_VERSION" "$RESET" ;;
+    list|ls)              list_plugins "${1:-}" ;;
+    logo)                 print_logo --animate ;;
+    doctor)               cmd_doctor ;;
+    update)               bash "$CLIXR_ROOT/update.sh" "$@" ;;
+    net|sec|sys|dev|web|rice|fun) list_plugins "$cmd" ;;
+    config)
+      case "${1:-}" in
+        set) config_set "$2" "$3"; ui_ok "set ${BCYAN}$2${RESET}=$3" ;;
+        get) config_get "$2" ;;
+        *)   ui_err "usage: clixr config set|get <key> [value]" ;;
+      esac ;;
+    *)
+      local plugin
+      if plugin="$(find_plugin "$cmd")"; then
+        bash "$plugin" "$@"
+      else
+        ui_err "Unknown command: ${BWHITE}$cmd${RESET}"
+        local s; s="$(suggest "$cmd")"
+        if [ -n "$s" ]; then
+          printf '   %sdid you mean:%s ' "$DIM" "$RESET"
+          local w; for w in $s; do printf '%s%s%s ' "$BGREEN" "$w" "$RESET"; done; printf '\n'
+        fi
+        ui_info "run ${BCYAN}clixr list${RESET} to see all tools"
+        exit 1
+      fi ;;
+  esac
+}
+
+main "$@"

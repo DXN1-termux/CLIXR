@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Big terminal clock
+
+
+trap "tput cnorm 2>/dev/null; clear; exit 0" INT
+tput civis 2>/dev/null
+while true; do clear; ui_header "$(date +%H:%M:%S)"; printf "  %s%s%s\n" "$GRAY" "$(date +%A,\ %d\ %B\ %Y)" "$RESET"; sleep 1; done

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Generate a self-signed TLS certificate
+
+
+require_cmd openssl || exit 1
+cn="${1:-localhost}"
+ui_header "self-signed cert for $cn"
+openssl req -x509 -newkey rsa:2048 -keyout "$cn.key" -out "$cn.crt" \
+  -days 365 -nodes -subj "/CN=$cn" 2>/dev/null \
+  && ui_ok "created $cn.key and $cn.crt" || ui_err "failed"

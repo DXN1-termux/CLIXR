@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Find/kill what is using a port
+
+
+port="${1:?usage: clixr port <port> [--kill]}"
+ui_header "port $port"
+pids=""
+if has_cmd lsof; then pids=$(lsof -ti ":$port" 2>/dev/null)
+elif has_cmd fuser; then pids=$(fuser "$port/tcp" 2>/dev/null); fi
+if [ -z "$pids" ]; then ui_info "nothing on port $port"; exit 0; fi
+ui_warn "PIDs using $port: $pids"
+[ "${2:-}" = "--kill" ] && { kill -9 $pids 2>/dev/null && ui_ok "killed $pids"; }

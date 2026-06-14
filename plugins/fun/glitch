@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Glitch-ify text
+
+
+text="${*:-clixr}"
+for ((i=0;i<8;i++)); do
+  out=""; for ((j=0;j<${#text};j++)); do
+    if [ $((RANDOM%3)) -eq 0 ]; then out+="${text:$((RANDOM%${#text})):1}"; else out+="${text:$j:1}"; fi
+  done
+  printf "\r%s%s%s" "$BRED" "$out" "$RESET"; sleep 0.08
+done
+printf "\r%s%s%s\n" "$BGREEN" "$text" "$RESET"

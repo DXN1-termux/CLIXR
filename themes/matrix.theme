@@ -1,0 +1,3 @@
+# clixr theme: matrix
+export CLIXR_THEME="matrix"
+export PS1='\[\033[38;5;46m\]\u@\h:\w\$\[\033[0m\] '

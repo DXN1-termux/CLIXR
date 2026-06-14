@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Show what is listening on which ports
+
+
+ui_header "listening ports"
+if has_cmd ss; then ss -tulnp 2>/dev/null | head -30
+elif has_cmd netstat; then netstat -tulnp 2>/dev/null | head -30
+else ui_err "need ss or netstat"; fi

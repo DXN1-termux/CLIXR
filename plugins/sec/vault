@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Encrypted note vault
+
+
+require_cmd openssl || exit 1
+vfile="$(clixr_config_dir)/vault.enc"; mkdir -p "$(clixr_config_dir)"
+case "${1:-help}" in
+  add)  shift; tmp=$(mktemp); [ -f "$vfile" ] && aes_decrypt "$vfile" "$tmp" 2>/dev/null
+        echo "$*" >> "$tmp"; aes_encrypt "$tmp" "$vfile"; rm -f "$tmp"; ui_ok "added" ;;
+  show) [ -f "$vfile" ] || die "vault empty"; aes_decrypt "$vfile" /dev/stdout 2>/dev/null ;;
+  *)    ui_info "usage: clixr vault add <text> | clixr vault show" ;;
+esac

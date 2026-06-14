@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: DNS lookup for a host
+
+
+host="${1:?usage: clixr dns <host>}"
+ui_header "dns: $host"
+if has_cmd dig; then dig +short "$host" | sed "s/^/  /"
+else ui_info "$(resolve_host "$host")"; fi

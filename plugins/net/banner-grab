@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Grab service banner from a port
+
+
+host="${1:?usage: clixr banner-grab <host> <port>}"; port="${2:?}"
+require_cmd nc || exit 1
+ui_header "banner: $host:$port"
+printf "\r\n" | nc -w3 "$host" "$port" 2>/dev/null | head -5 | sed "s/^/  /"

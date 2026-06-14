@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Quick local HTTP server
+
+
+port="${1:-8000}"
+ui_header "serving $(pwd) on :$port"
+ip=$(get_local_ip); [ -n "$ip" ] && ui_info "LAN: http://$ip:$port"
+if has_cmd python3; then python3 -m http.server "$port"
+elif has_cmd python; then python -m SimpleHTTPServer "$port"
+else ui_err "need python"; fi

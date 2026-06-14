@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Fast TCP port scanner
+
+
+host="${1:-localhost}"; range="${2:-1-1024}"
+start="${range%-*}"; end="${range#*-}"
+ui_header "scanning $host ($start-$end)"
+open=0; total=$(( end - start + 1 )); done=0
+results=()
+for ((p=start; p<=end; p++)); do
+  if tcp_open "$host" "$p" 1; then
+    results+=("$p|$(port_service "$p")|open"); open=$((open+1))
+  fi
+  done=$((done+1)); ui_progress "$done" "$total" "probing"
+done
+printf "\n"
+if [ "$open" -gt 0 ]; then
+  ui_table "PORT|SERVICE|STATE" "${results[@]}"
+fi
+printf "\n"; ui_info "$open open port(s) of $total scanned"

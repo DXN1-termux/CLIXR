@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Fake hollywood hacking animation
+
+
+clear; lines="${1:-40}"
+chars="0123456789abcdef ACCESS GRANTED DENIED root@ sudo rm exploit payload 0x"
+for ((i=0;i<lines;i++)); do
+  s=""; for ((j=0;j<RANDOM%60+20;j++)); do s+="${chars:$((RANDOM%${#chars})):1}"; done
+  printf "%s%s%s\n" "$(fg256 46)" "$s" "$RESET"; sleep 0.05
+done
+ui_box "ACCESS GRANTED" "" "  Welcome, operator." ""

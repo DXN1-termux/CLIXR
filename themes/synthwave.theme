@@ -1,0 +1,3 @@
+# clixr theme: synthwave
+export CLIXR_THEME="synthwave"
+export PS1='\[\033[38;5;213m\]\u\[\033[38;5;45m\]@\w \[\033[38;5;220m\]▸\[\033[0m\] '

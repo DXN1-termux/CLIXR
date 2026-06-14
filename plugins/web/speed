@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Test download speed
+
+
+require_cmd curl || exit 1
+bytes="${2:-10000000}"
+url="${1:-https://speed.cloudflare.com/__down?bytes=$bytes}"
+ui_header "speed test"
+ui_spin_start "downloading ${bytes} bytes..."
+t0=$(date +%s)
+curl -fsSL "$url" -o /dev/null 2>/dev/null
+t1=$(date +%s)
+ui_spin_stop "done"
+elapsed=$(( t1 - t0 )); [ "$elapsed" -lt 1 ] && elapsed=1
+mb=$(( bytes / 1048576 ))
+ui_kv "downloaded" "${mb} MB"
+ui_kv "time"       "${elapsed}s"
+ui_kv "throughput" "$(( mb * 8 / elapsed )) Mbit/s"

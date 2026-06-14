@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Trace the route to a host
+
+
+host="${1:?usage: clixr traceroute <host>}"
+ui_header "trace: $host"
+if has_cmd traceroute; then traceroute -m 20 "$host" 2>/dev/null | sed "s/^/  /"
+elif has_cmd tracepath; then tracepath "$host" 2>/dev/null | sed "s/^/  /"
+else ui_err "need traceroute or tracepath"; fi

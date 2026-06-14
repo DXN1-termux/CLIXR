@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Discover live hosts on a /24 subnet
+
+
+base="${1:?usage: clixr ping-sweep 192.168.1}"
+ui_header "ping sweep: $base.0/24"
+for i in $(seq 1 254); do
+  ( ping -c1 -W1 "$base.$i" >/dev/null 2>&1 && ui_ok "$base.$i is up" ) &
+done; wait

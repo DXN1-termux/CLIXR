@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Base64 encode/decode
+
+
+mode="${1:?usage: clixr b64 enc|dec <string>}"; shift
+case "$mode" in
+  enc|e) b64_encode "$*"; echo ;;
+  dec|d) b64_decode "$*"; echo ;;
+  *) ui_err "mode must be enc or dec" ;;
+esac

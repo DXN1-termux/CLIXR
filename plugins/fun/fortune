@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Random hacker wisdom
+
+
+quotes=(
+"There is no patch for human stupidity."
+"The quieter you become, the more you are able to hear."
+"Hack the planet!"
+"It is not a bug, it is an undocumented feature."
+"sudo make me a sandwich."
+"Talk is cheap. Show me the code. — Linus Torvalds"
+"Premature optimization is the root of all evil."
+"rm -rf / is not a backup strategy."
+)
+printf "\n  %s\"%s\"%s\n\n" "$BCYAN" "${quotes[$((RANDOM % ${#quotes[@]}))]}" "$RESET"

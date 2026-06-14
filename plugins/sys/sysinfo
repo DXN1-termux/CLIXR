@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Full system information
+
+
+ui_header "system info"
+mem="n/a"; has_cmd free && mem="$(free -h 2>/dev/null | awk '/Mem:/{print $3" / "$2}')"
+disk="$(df -h . 2>/dev/null | awk 'NR==2{print $3" / "$2" ("$5")"}')"
+ui_kv "user"   "${USER:-$(whoami)}"
+ui_kv "host"   "$(hostname 2>/dev/null)"
+ui_kv "os"     "$(detect_os)"
+ui_kv "arch"   "$(detect_arch)"
+ui_kv "kernel" "$(uname -r 2>/dev/null)"
+ui_kv "shell"  "$(detect_shell)"
+ui_kv "term"   "$(detect_term)"
+ui_kv "uptime" "$(uptime 2>/dev/null | sed 's/.*up //;s/,.*user.*//' | xargs)"
+ui_kv "memory" "$mem"
+ui_kv "disk"   "$disk"
+printf "\n"

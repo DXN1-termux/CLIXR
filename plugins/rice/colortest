@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Show all 256 terminal colors
+
+
+printf "\n  Standard & bright (0-15):\n  "
+for i in $(seq 0 15); do printf "%s %3d %s" "$(bg256 "$i")" "$i" "$RESET"; [ $(((i+1)%8)) -eq 0 ] && printf "\n  "; done
+printf "\n\n  256 color cube:\n  "
+for i in $(seq 16 231); do printf "%s %3d%s" "$(bg256 "$i")" "$i" "$RESET"; [ $(((i-15)%12)) -eq 0 ] && printf "\n  "; done
+printf "\n\n  Grayscale:\n  "
+for i in $(seq 232 255); do printf "%s %3d%s" "$(bg256 "$i")" "$i" "$RESET"; done
+printf "\n\n"

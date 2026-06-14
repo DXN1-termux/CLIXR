@@ -1,0 +1,3 @@
+# clixr theme: cyberpunk
+export CLIXR_THEME="cyberpunk"
+export PS1='\[\033[38;5;201m\]\u\[\033[38;5;51m\]:\w \[\033[38;5;226m\]⚡\[\033[0m\] '

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: List and manage SSH keys
+
+
+ui_header "ssh keys"
+for k in "$HOME"/.ssh/*.pub; do
+  [ -f "$k" ] || continue
+  ui_ok "$(basename "$k")"
+  ssh-keygen -lf "$k" 2>/dev/null | sed "s/^/    /"
+done
+[ -f "$HOME/.ssh/config" ] && { printf "\n"; ui_info "hosts in ~/.ssh/config:"; grep -iE "^host " "$HOME/.ssh/config" | awk "{print \"    \"\$2}"; }

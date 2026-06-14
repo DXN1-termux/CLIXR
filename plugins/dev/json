@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Pretty-print / validate JSON
+
+
+if has_cmd jq; then
+  if [ -f "${1:-}" ]; then jq . "$1"; else printf "%s" "$*" | jq .; fi
+elif has_cmd python3; then
+  if [ -f "${1:-}" ]; then python3 -m json.tool "$1"; else printf "%s" "$*" | python3 -m json.tool; fi
+else ui_err "need jq or python3"; fi

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Pretty system info fetch (neofetch-style)
+
+
+os=$(detect_os); arch=$(detect_arch); sh=$(detect_shell)
+host=$(hostname 2>/dev/null || echo unknown)
+me="${USER:-$(whoami)}"
+up=$(uptime 2>/dev/null | sed "s/.*up //;s/,.*user.*//" | xargs || echo "?")
+c="$BCYAN"; g="$BGREEN"; r="$RESET"
+printf "\n"
+printf "  %s   .--.    %s   %s%s@%s%s\n"        "$c" "$r" "$g" "$me" "$host" "$r"
+printf "  %s  |o_o |   %s   %s──────────%s\n"   "$c" "$r" "$GRAY" "$r"
+printf "  %s  |:_/ |   %s   %sos%s     %s\n"     "$c" "$r" "$c" "$r" "$os"
+printf "  %s //   \\ \\  %s   %sarch%s   %s\n"   "$c" "$r" "$c" "$r" "$arch"
+printf "  %s(|     | ) %s   %sshell%s  %s\n"     "$c" "$r" "$c" "$r" "$sh"
+printf "  %s/'\\_   _/'\\%s  %suptime%s %s\n"    "$c" "$r" "$c" "$r" "$up"
+printf "  %s\\___)=(___/%s\n\n"                  "$c" "$r"

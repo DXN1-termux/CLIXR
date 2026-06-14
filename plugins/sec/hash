@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Hash a string or file
+
+
+algo="${1:-sha256}"; target="${2:?usage: clixr hash <algo> <string|file>}"
+if [ -f "$target" ]; then h=$(hash_file "$algo" "$target"); else h=$(hash_str "$algo" "$target"); fi
+printf "  %s%s%s  %s\n" "$BGREEN" "$algo" "$RESET" "$h"

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Generate a wordlist from base words
+
+
+[ $# -ge 1 ] || die "usage: clixr wordlist word1 word2 ..."
+years="2023 2024 2025"; specials="! @ # 123 1 ."
+for w in "$@"; do
+  echo "$w"; echo "${w^}"; echo "${w^^}"
+  for y in $years; do echo "$w$y"; echo "${w^}$y"; done
+  for s in $specials; do echo "$w$s"; echo "${w^}$s"; done
+done | sort -u

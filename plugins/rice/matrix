@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Matrix digital rain animation
+
+
+cols=$(tput cols 2>/dev/null || echo 80)
+trap "tput cnorm 2>/dev/null; printf %s%s \"$RESET\" \"\"; clear; exit 0" INT
+tput civis 2>/dev/null; clear
+chars="01ｱｲｳｴｵｶｷｸ#$%&"
+declare -a drop
+for ((c=0;c<cols;c++)); do drop[$c]=$((RANDOM % 24)); done
+for ((frame=0; frame<${1:-200}; frame++)); do
+  line=""
+  for ((c=0;c<cols;c++)); do
+    ch="${chars:$((RANDOM % ${#chars})):1}"
+    printf "\033[%d;%dH%s%s%s" "${drop[$c]}" "$c" "$(fg256 46)" "$ch" "$RESET"
+    drop[$c]=$(( ${drop[$c]} + 1 )); [ ${drop[$c]} -gt 24 ] && drop[$c]=0
+  done
+  sleep 0.05
+done
+tput cnorm 2>/dev/null; clear

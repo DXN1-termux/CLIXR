@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Pretty side-by-side file diff
+
+
+a="${1:?usage: clixr diff <a> <b>}"; b="${2:?}"
+if has_cmd delta; then delta "$a" "$b"
+elif has_cmd colordiff; then colordiff -u "$a" "$b"
+else diff --color=always -u "$a" "$b" 2>/dev/null || diff -u "$a" "$b"; fi

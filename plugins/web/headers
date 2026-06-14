@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Analyze security headers of a site
+
+
+url="${1:?usage: clixr headers <url>}"
+require_cmd curl || exit 1
+ui_header "security headers: $url"
+h=$(curl -fsSI "$url" 2>/dev/null)
+for hdr in Strict-Transport-Security Content-Security-Policy X-Frame-Options X-Content-Type-Options Referrer-Policy; do
+  if printf "%s" "$h" | grep -qi "^$hdr"; then ui_ok "$hdr"; else ui_warn "$hdr missing"; fi
+done

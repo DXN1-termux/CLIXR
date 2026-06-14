@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Switch terminal color theme
+
+
+themedir="$CLIXR_ROOT/themes"
+if [ -z "${1:-}" ]; then
+  ui_header "available themes"
+  for t in "$themedir"/*.theme; do [ -f "$t" ] && printf "  %s•%s %s\n" "$BGREEN" "$RESET" "$(basename "$t" .theme)"; done
+  cur=$(config_get theme 2>/dev/null || echo none)
+  printf "\n  current: %s%s%s\n" "$BCYAN" "$cur" "$RESET"
+  exit 0
+fi
+if [ -f "$themedir/$1.theme" ]; then
+  config_set theme "$1"
+  ui_ok "Theme set to $1 (restart shell or re-source to apply)"
+  ui_info "Add to your shell rc: source $themedir/$1.theme"
+else
+  ui_err "Theme not found: $1"
+fi

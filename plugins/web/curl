@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Fancy HTTP client + downloader (methods, headers, JSON, timing)
+
+usage() {
+  ui_panel 51 "curl — fancy HTTP client (clixr)" \
+    "${BGREEN}curl${RESET} ${BCYAN}<url>${RESET}                      GET, pretty body" \
+    "${BGREEN}curl${RESET} ${BCYAN}-X POST <url> -d '{...}'${RESET}   send JSON" \
+    "${BGREEN}curl${RESET} ${BCYAN}-H 'Key: Val' <url>${RESET}       custom header (repeatable)" \
+    "${BGREEN}curl${RESET} ${BCYAN}-o file <url>${RESET}             download to file w/ progress" \
+    "${BGREEN}curl${RESET} ${BCYAN}-i <url>${RESET}                  show response headers too" \
+    "${BGREEN}curl${RESET} ${BCYAN}--head <url>${RESET}              headers only (HEAD)"
+  exit "${1:-0}"
+}
+
+[ $# -eq 0 ] && usage 0
+
+method="GET"; url=""; data=""; out=""; show_headers=0; head_only=0
+headers=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -X|--method) method="$2"; shift 2 ;;
+    -d|--data)   data="$2"; method="POST"; shift 2 ;;
+    -H|--header) headers+=("-H" "$2"); shift 2 ;;
+    -o|--output) out="$2"; shift 2 ;;
+    -i|--include) show_headers=1; shift ;;
+    --head)      head_only=1; method="HEAD"; shift ;;
+    -h|--help)   usage 0 ;;
+    -*)          ui_err "unknown flag: $1"; usage 1 ;;
+    *)           url="$1"; shift ;;
+  esac
+done
+[ -z "$url" ] && { ui_err "no URL given"; usage 1; }
+require_cmd curl || exit 1
+# Default scheme
+case "$url" in http://*|https://*) ;; *) url="https://$url" ;; esac
+
+method="$(printf '%s' "$method" | tr '[:lower:]' '[:upper:]')"
+ui_header "$method $url"
+
+# ── Download mode ──
+if [ -n "$out" ]; then
+  ui_info "downloading → $out"
+  if curl -fL --progress-bar ${headers[@]+"${headers[@]}"} -X "$method" ${data:+-d "$data"} "$url" -o "$out"; then
+    ui_ok "saved $out ($(human_bytes "$(wc -c < "$out" 2>/dev/null || echo 0)"))"
+  else ui_err "download failed"; exit 1; fi
+  exit 0
+fi
+
+# ── HEAD only ──
+if [ "$head_only" -eq 1 ]; then
+  curl -fsSI ${headers[@]+"${headers[@]}"} "$url" 2>/dev/null | sed "s/^/  /"
+  exit 0
+fi
+
+# ── Request with full metadata via curl -w ──
+tmp_body="$(mktemp)"; tmp_hdr="$(mktemp)"
+trap 'rm -f "$tmp_body" "$tmp_hdr"' EXIT
+
+metrics="$(curl -sS -L \
+  -X "$method" ${headers[@]+"${headers[@]}"} ${data:+-H "Content-Type: application/json"} ${data:+-d "$data"} \
+  -D "$tmp_hdr" -o "$tmp_body" \
+  -w '%{http_code}|%{time_total}|%{size_download}|%{content_type}|%{num_redirects}' \
+  "$url" 2>/dev/null)"
+
+if [ -z "$metrics" ]; then ui_err "request failed (no response)"; exit 1; fi
+IFS='|' read -r code ttotal size ctype redirs <<< "$metrics"
+
+# Status badge color by class
+sc=46; case "$code" in 2*) sc=46 ;; 3*) sc=220 ;; 4*) sc=208 ;; 5*) sc=196 ;; *) sc=244 ;; esac
+printf '   %s %s%s%s   %s%ss%s   %s   %s%s%s\n\n' \
+  "$(ui_badge "$sc" "$code")" "$DIM" "${ctype:-?}" "$RESET" \
+  "$BCYAN" "${ttotal:-?}" "$RESET" \
+  "$(human_bytes "${size:-0}")" \
+  "$DIM" "${redirs:-0} redirect(s)" "$RESET"
+
+# Optional headers
+if [ "$show_headers" -eq 1 ]; then
+  ui_rule "headers"
+  sed "s/^/  /" "$tmp_hdr" | grep -v '^[[:space:]]*$'
+  ui_rule "body"
+fi
+
+# Pretty body: JSON via jq, else raw
+if printf '%s' "${ctype:-}" | grep -qi json && has_cmd jq; then
+  jq . "$tmp_body" 2>/dev/null || cat "$tmp_body"
+else
+  cat "$tmp_body"
+fi
+printf '\n'

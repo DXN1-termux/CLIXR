@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: ASCII speech bubble
+
+
+text="${*:-Moo!}"; len=${#text}
+top=""; for ((i=0;i<len+2;i++)); do top+="_"; done
+bot=""; for ((i=0;i<len+2;i++)); do bot+="-"; done
+printf "   %s\n  < %s >\n   %s\n" "$top" "$text" "$bot"
+cat <<'COW'
+          \   ^__^
+           \  (oo)\_______
+              (__)\       )\/\
+                  ||----w |
+                  ||     ||
+COW

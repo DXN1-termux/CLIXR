@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Upload stdin/file to a pastebin
+
+
+require_cmd curl || exit 1
+if [ -f "${1:-}" ]; then content=$(cat "$1"); else content=$(cat); fi
+url=$(printf "%s" "$content" | curl -fsSL --data-binary @- https://0x0.st 2>/dev/null)
+[ -n "$url" ] && ui_ok "$url" || ui_err "upload failed"

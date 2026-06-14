@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -uo pipefail
+: "${CLIXR_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+export CLIXR_LIB="$CLIXR_ROOT/lib"
+. "$CLIXR_LIB/colors.sh"; . "$CLIXR_LIB/ui.sh"; . "$CLIXR_LIB/platform.sh"
+. "$CLIXR_LIB/utils.sh"; . "$CLIXR_LIB/network.sh"; . "$CLIXR_LIB/crypto.sh"
+# desc: Securely overwrite + delete a file
+
+
+f="${1:?usage: clixr wipe <file>}"
+[ -f "$f" ] || die "no such file: $f"
+ui_warn "Securely wiping $f"
+if ui_confirm "This is irreversible. Continue?"; then
+  size=$(wc -c < "$f")
+  for pass in 1 2 3; do head -c "$size" /dev/urandom > "$f" 2>/dev/null; done
+  rm -f "$f"; ui_ok "wiped $f (3 passes)"
+else ui_info "cancelled"; fi
